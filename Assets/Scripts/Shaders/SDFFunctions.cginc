@@ -1,3 +1,10 @@
+struct Camera
+{
+    float3 position;
+    float4 rotation;
+    float2 viewAngle;
+};
+
 struct Sphere
 {
     float3 position;
@@ -93,14 +100,11 @@ float CubeSDF(float3 pointPos, Cube cube)
     return length(q)-t.y;
 }*/
 
-float SmoothMin(float a, float b)
-{
-    float k = .4;
+float opUnion( float d1, float d2 ) { return min(d1,d2); }
+            
+float opSubtraction( float a, float b ) { return max(-a,b); }
 
-    float h = a - b;
-    h = clamp(0.5 + 0.5*h/k, 0.0, 1.0);    
-    return lerp(a, b, h) - k*h*(1.0-h);    
-}
+float opIntersection( float a, float b ) { return max(a,b); }
 
 float opSmoothUnion( float d1, float d2, float k ) {
     float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
@@ -114,8 +118,21 @@ float opSmoothIntersection( float d1, float d2, float k ) {
     float h = clamp( 0.5 - 0.5*(d2-d1)/k, 0.0, 1.0 );
     return lerp( d2, d1, h ) + k*h*(1.0-h); }
 
-float opUnion( float d1, float d2 ) { return min(d1,d2); }
-            
-float opSubtraction( float a, float b ) { return max(-a,b); }
-
-float opIntersection( float a, float b ) { return max(a,b); }
+float SDFTriangleFractal(float3 z, float4 rot)
+{
+    z = opRotate(z, rot);
+    float iterations = 62;
+    float scale = 2;
+    float offset = 3;
+    
+    float r;
+    int n = 0;
+    while (n < iterations) {
+        if(z.x+z.y<0) z.xy = -z.yx; // fold 1
+        if(z.x+z.z<0) z.xz = -z.zx; // fold 2
+        if(z.y+z.z<0) z.zy = -z.yz; // fold 3	
+        z = z*scale - offset*(scale-1.0);
+        n++;
+    }
+    return (length(z) ) * pow(scale, -float(n));
+}

@@ -16,6 +16,7 @@ public class MainController : MonoBehaviour
     private ComputeBuffer spheresBuffer;
     private ComputeBuffer cubesBuffer;
     private ComputeBuffer boxFramesBuffer;
+    private ComputeBuffer shaderCamBuffer;
 
     void OnValidate()
     {
@@ -72,11 +73,21 @@ public class MainController : MonoBehaviour
         boxFramesBuffer = new ComputeBuffer(Math.Max(1, boxFrames.Count), sizeof(float) * 11);
         
         boxFramesBuffer.SetData(boxFrames);
-        
+
         material.SetBuffer(Shader.PropertyToID("BoxFrames"), boxFramesBuffer);
         material.SetInt(Shader.PropertyToID("NumBoxFrames"), boxFrames.Count);
         
+        List<ShaderCam> shaderCam = new List<ShaderCam>();
+        foreach(var cam in FindObjectsOfType<UseAsCam>())
+            shaderCam.Add(cam.GetObjectData());
+        shaderCamBuffer = new ComputeBuffer(Math.Max(1, boxFrames.Count), sizeof(float) * 9);
+        
+        shaderCamBuffer.SetData(shaderCam);
+
+        material.SetBuffer(Shader.PropertyToID("Cam"), shaderCamBuffer);
+
         material.SetInt(Shader.PropertyToID("NumObjects"), spheres.Count + cubes.Count + boxFrames.Count);
+        
     }
 
     private void DisposeBuffers()

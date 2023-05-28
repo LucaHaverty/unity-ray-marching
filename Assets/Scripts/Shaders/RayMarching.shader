@@ -6,8 +6,6 @@ Shader "Hidden/RayMarching"
         _MinDistance ("Min Distance", float) = 0
         _MaxDistance ("Max Distance", float) = 0
         _MaxSteps ("Max Steps", float) = 0
-        _RayAngleX ("Ray Angle X", float) = 0
-        _RayAngleY ("Ray Angle Y", float) = 0
     }
     SubShader
     {
@@ -46,8 +44,6 @@ Shader "Hidden/RayMarching"
             float _MinDistance;
             float _MaxDistance;
             float _MaxSteps;
-            float _RayAngleX;
-            float _RayAngleY;
             
             StructuredBuffer<Sphere> Spheres;
             float NumSpheres;
@@ -57,6 +53,8 @@ Shader "Hidden/RayMarching"
            
             StructuredBuffer<BoxFrame> BoxFrames;
             float NumBoxFrames;
+
+            StructuredBuffer<Camera> Cam;
 
             int NumObjects;
 
@@ -68,21 +66,24 @@ Shader "Hidden/RayMarching"
                 for (int i = 0; i < NumSpheres; i++)
                 {
                     float dist = SphereSDF(pointPos, Spheres[i]);
-                    closeDist = opSmoothUnion(closeDist, dist, 0.2);
+                    closeDist = opUnion(closeDist, dist);
                 }
                 for (int i = 0; i < NumCubes; i++)
                 {
                     float dist = CubeSDF(pointPos, Cubes[i]);
-                    closeDist = opSmoothSubtraction(closeDist, dist, 0.1);
+                    closeDist = opUnion(closeDist, dist);
                 }
                 for (int i = 0; i < NumBoxFrames; i++)
                 {
                     float dist = BoxFrameSDF(pointPos, BoxFrames[i]);
-                    closeDist = opSmoothUnion(closeDist, dist, 0.2);
+                    closeDist = opUnion(closeDist, dist);
                 }
                 return closeDist;
+                
                 //return SmoothMin(SphereSDF(pointPos, Spheres[0]), CubeSDF(pointPos, Cubes[0]));
                 //return opSmoothIntersection(SphereSDF(pointPos, Spheres[0]), CubeSDF(pointPos, Cubes[0]), .2);
+                /*pointPos = opRotate(pointPos, float4(0, 0, 0, 0));
+                return SDFTriangleFractal(pointPos + float3(0, 0, -3.5), Cubes[0].rotation);*/
             }
 
             struct RayHitInfo
@@ -143,12 +144,14 @@ Shader "Hidden/RayMarching"
             
             float4 frag (v2f i) : SV_Target
             {
-                float3 origin = float3(0, 0, 0);
+                Camera cam = Cam[0];
+                float3 origin = float3(cam.position.x, cam.position.y, cam.position.z);
                 //float2 rayAngle = float2(-(i.uv.x * 2 - 1) * _RayAngleX + 90, (i.uv.y * 2 - 1) * _RayAngleY);
                 //rayAngle = normalize(rayAngle);
 
-                float3 gain = normalize(float3((i.uv.x*2 - 1) * tan(_RayAngleX*0.0174533), (i.uv.y*2 - 1) * tan(_RayAngleY*0.0174533), 1));
-
+                float3 gain = normalize(float3((i.uv.x*2 - 1) * tan(cam.viewAngle.x*0.0174533), (i.uv.y*2 - 1) * tan(cam.viewAngle.y*0.0174533), 1));
+                gain = opRotate(gain, cam.rotation);
+                
                 RayHitInfo hitInfo = CastRay(origin, gain);
                 
                 float4 col;
@@ -162,16 +165,14 @@ Shader "Hidden/RayMarching"
 
                     col = float4(shading, shading, shading, 1);
                 }
-                //else col = float4(0.3, 0.4, 0.8, 0); // Skybox
-                else
+                else // Skybox
                 {
                     float darkness = ((float)1 / i.uv.y);
                     darkness = min(darkness, 3.5);
-                    col = float4(0.3*darkness-0.2, 0.45*darkness-0.2, 0.8*darkness-0.2, 0); // Skybox
+                    col = float4(0.3*darkness-0.2, 0.45*darkness-0.2, 0.8*darkness-0.2, 0);
                 }
 
-                /*if (hitInfo.steps > _MaxSteps)
-                    col = float4(1, 0, 0, 1); // Red if passed max steps (for debugging)*/
+                // Outline Shading
                 if (!hitInfo.hitTarget && hitInfo.minDistFromObject < 0.03) col = float4(.5, 0, 1, 1);
                 return col;
             }
