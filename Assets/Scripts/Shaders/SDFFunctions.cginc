@@ -5,26 +5,79 @@ struct Camera
     float2 viewAngle;
 };
 
-struct Sphere
+struct RenderedObjectData
 {
+    int objectType;
+
     float3 position;
+    float3 scale;
+    float4 rotation;
+
+    // Properties: use varies depending on objectType
+    float p1;
+    float p2;
+    float p3;
+};
+
+/*struct Sphere : RenderedObjectData
+{
     float radius;
+
+    Sphere()
+    {
+        radius = p1;
+    }
+
+    float SDF(float3 pointPos)
+    {
+        // Distance to center
+        float3 p = position - pointPos;
+    
+        return (length(p)) - radius;
+    }
 };
 
-struct Cube
+struct Cube : RenderedObjectData
 {
-    float3 position;
-    float3 scale;
-    float4 rotation;
+    float SDF(float3 pointPos, Cube cube)
+    {
+        // Distance to center
+        float3 p = cube.position - pointPos;
+
+        // Apply X rotation
+        p = opRotate(p, cube.rotation);
+
+
+        float3 q = abs(p) - cube.scale/2.0;
+        return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
+    }
 };
 
-struct BoxFrame
+struct BoxFrame : RenderedObjectData
 {
-    float3 position;
-    float3 scale;
-    float4 rotation;
     float edgeThickness;
-};
+
+    BoxFrame()
+    {
+        edgeThickness = p1;
+    }
+
+    float SDF(float3 pointPos, BoxFrame boxFrame)
+    {
+        // Distance to center
+        float3 p = boxFrame.position - pointPos;
+
+        // Apply X rotation
+        p = opRotate(p, boxFrame.rotation);
+    
+        p = abs(p)-boxFrame.scale/2.0;
+        float3 q = abs(p+boxFrame.edgeThickness)-boxFrame.edgeThickness;
+        return min(min(
+              length(max(float3(p.x,q.y,q.z),0.0))+min(max(p.x,max(q.y,q.z)),0.0),
+              length(max(float3(q.x,p.y,q.z),0.0))+min(max(q.x,max(p.y,q.z)),0.0)),
+              length(max(float3(q.x,q.y,p.z),0.0))+min(max(q.x,max(q.y,p.z)),0.0));
+    }
+};*/
 
 float3 opRotate(float3 p, float4 r) {
     float num1 = r.x * 2;
@@ -46,7 +99,7 @@ float3 opRotate(float3 p, float4 r) {
     return result;
 }
 
-float SphereSDF(float3 pointPos, Sphere sphere)
+/*float SphereSDF(float3 pointPos, Sphere sphere)
 {
     // Distance to center
     float3 p = sphere.position - pointPos;
@@ -61,8 +114,6 @@ float BoxFrameSDF(float3 pointPos, BoxFrame boxFrame)
 
     // Apply X rotation
     p = opRotate(p, boxFrame.rotation);
-    /*float xRot = -(boxFrame.rotation.x)*0.0174533;
-    p = float3(p.x, p.y*cos(xRot) - p.z*sin(xRot), p.y*sin(xRot)+p.z*cos(xRot));*/
     
     p = abs(p)-boxFrame.scale/2.0;
     float3 q = abs(p+boxFrame.edgeThickness)-boxFrame.edgeThickness;
@@ -83,7 +134,7 @@ float CubeSDF(float3 pointPos, Cube cube)
 
     float3 q = abs(p) - cube.scale/2.0;
     return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
-}
+}*/
 
 /*float SignedDistanceTorus(float3 pointPos, Cube cube)
 {
@@ -118,7 +169,7 @@ float opSmoothIntersection( float d1, float d2, float k ) {
     float h = clamp( 0.5 - 0.5*(d2-d1)/k, 0.0, 1.0 );
     return lerp( d2, d1, h ) + k*h*(1.0-h); }
 
-float SDFTriangleFractal(float3 z, float4 rot)
+/*float SDFTriangleFractal(float3 z, float4 rot)
 {
     z = opRotate(z, rot);
     float iterations = 62;
@@ -135,4 +186,32 @@ float SDFTriangleFractal(float3 z, float4 rot)
         n++;
     }
     return (length(z) ) * pow(scale, -float(n));
+}*/
+
+float CalculateSDF(RenderedObjectData object, float3 pointPosition)
+{
+    // Distance to center
+    float3 p = object.position - pointPosition;
+
+    // Apply X rotation
+    p = opRotate(p, object.rotation);
+
+    switch(object.objectType)
+    {
+        case 0: // Sphere (p1 = radius)
+            return (length(p)) - object.p1;
+            break;
+        case 1: // Cube
+            float3 q = abs(p) - object.scale/2.0;
+            return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
+        case 2: // Box Frame (p1 = edgeThickness)
+            p = abs(p)-object.scale/2.0;
+            float3 q2 = abs(p+object.p1)-object.p1;
+            return min(min(
+                  length(max(float3(p.x,q2.y,q2.z),0.0))+min(max(p.x,max(q2.y,q2.z)),0.0),
+                  length(max(float3(q2.x,p.y,q2.z),0.0))+min(max(q2.x,max(p.y,q2.z)),0.0)),
+                  length(max(float3(q2.x,q2.y,p.z),0.0))+min(max(q2.x,max(q2.y,p.z)),0.0));
+        default:
+            return 0;
+    }
 }

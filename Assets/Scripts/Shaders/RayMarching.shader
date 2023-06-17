@@ -45,45 +45,52 @@ Shader "Hidden/RayMarching"
             float _MaxDistance;
             float _MaxSteps;
             
-            StructuredBuffer<Sphere> Spheres;
+            /*StructuredBuffer<Sphere> Spheres;
             float NumSpheres;
             
             StructuredBuffer<Cube> Cubes;
             float NumCubes;
            
             StructuredBuffer<BoxFrame> BoxFrames;
-            float NumBoxFrames;
+            float NumBoxFrames;*/
 
-            StructuredBuffer<Camera> Cam;
-
+            StructuredBuffer<RenderedObjectData> Objects;
             int NumObjects;
 
-            float SceneSDF(float3 pointPos)
+            StructuredBuffer<Camera> Cam;
+            
+            float SceneSDF(float3 pointPosition)
             {
-                // pointPos = float3(abs(pointPos.x % 1), abs(pointPos.y % 1), abs(pointPos.z % 1)); INFINITE REPETITIONS
+                //pointPos = float3(abs(pointPos.x % 1), abs(pointPos.y % 1), abs(pointPos.z % 1)); // INFINITE REPETITIONS
+                
                 float closeDist = 1*pow(10, 20);
 
-                for (int i = 0; i < NumSpheres; i++)
+                /*for (int i = 0; i < NumSpheres; i++)
                 {
                     float dist = SphereSDF(pointPos, Spheres[i]);
-                    closeDist = opUnion(closeDist, dist);
+                    closeDist = opSubtraction(closeDist, dist );
                 }
                 for (int i = 0; i < NumCubes; i++)
                 {
                     float dist = CubeSDF(pointPos, Cubes[i]);
-                    closeDist = opUnion(closeDist, dist);
+                    closeDist = opSubtraction(closeDist, dist);
                 }
                 for (int i = 0; i < NumBoxFrames; i++)
                 {
                     float dist = BoxFrameSDF(pointPos, BoxFrames[i]);
-                    closeDist = opUnion(closeDist, dist);
+                    closeDist = opSmoothSubtraction(closeDist, dist, 0.2);
+                }*/
+                for (int i = 0; i < NumObjects; i++)
+                {
+                    float dist = CalculateSDF(Objects[i], pointPosition);
+                    closeDist = opUnion(closeDist, dist );
                 }
                 return closeDist;
                 
                 //return SmoothMin(SphereSDF(pointPos, Spheres[0]), CubeSDF(pointPos, Cubes[0]));
                 //return opSmoothIntersection(SphereSDF(pointPos, Spheres[0]), CubeSDF(pointPos, Cubes[0]), .2);
-                /*pointPos = opRotate(pointPos, float4(0, 0, 0, 0));
-                return SDFTriangleFractal(pointPos + float3(0, 0, -3.5), Cubes[0].rotation);*/
+                //pointPos = opRotate(pointPos, float4(0, 0, 0, 0));
+                //return SDFTriangleFractal(pointPos + float3(0, 0, -3.5), Cubes[0].rotation);
             }
 
             struct RayHitInfo

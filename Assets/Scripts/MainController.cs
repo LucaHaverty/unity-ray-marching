@@ -13,9 +13,9 @@ public class MainController : MonoBehaviour
 
     [SerializeField] private Material material;
  
-    private ComputeBuffer spheresBuffer;
-    private ComputeBuffer cubesBuffer;
-    private ComputeBuffer boxFramesBuffer;
+    private ComputeBuffer renderedObjectBuffer;
+    /*private ComputeBuffer cubesBuffer;
+    private ComputeBuffer boxFramesBuffer;*/
     private ComputeBuffer shaderCamBuffer;
 
     void OnValidate()
@@ -47,7 +47,7 @@ public class MainController : MonoBehaviour
 
     public void SendObjectData()
     {
-        List<Sphere> spheres = new List<Sphere>();
+        /*List<Sphere> spheres = new List<Sphere>();
         foreach(var sphere in FindObjectsOfType<RenderedSphere>())
             spheres.Add(sphere.GetObjectData());
         spheresBuffer = new ComputeBuffer(Mathf.Max(1, spheres.Count), sizeof(float) * 4);
@@ -75,25 +75,35 @@ public class MainController : MonoBehaviour
         boxFramesBuffer.SetData(boxFrames);
 
         material.SetBuffer(Shader.PropertyToID("BoxFrames"), boxFramesBuffer);
-        material.SetInt(Shader.PropertyToID("NumBoxFrames"), boxFrames.Count);
+        material.SetInt(Shader.PropertyToID("NumBoxFrames"), boxFrames.Count);*/
         
         List<ShaderCam> shaderCam = new List<ShaderCam>();
         foreach(var cam in FindObjectsOfType<UseAsCam>())
             shaderCam.Add(cam.GetObjectData());
-        shaderCamBuffer = new ComputeBuffer(Math.Max(1, boxFrames.Count), sizeof(float) * 9);
+        shaderCamBuffer = new ComputeBuffer(Math.Max(1, shaderCam.Count), sizeof(float) * 9);
         
         shaderCamBuffer.SetData(shaderCam);
 
         material.SetBuffer(Shader.PropertyToID("Cam"), shaderCamBuffer);
 
-        material.SetInt(Shader.PropertyToID("NumObjects"), spheres.Count + cubes.Count + boxFrames.Count);
+        List<RenderedObjectData> renderedObjects = new List<RenderedObjectData>();
+        foreach(var renderedObject in FindObjectsOfType<RenderedObject>())
+            renderedObjects.Add(renderedObject.GetObjectData());
+        renderedObjectBuffer = new ComputeBuffer(Mathf.Max(1, renderedObjects.Count), sizeof(int) + sizeof(float) * 13);
+        
+        renderedObjectBuffer.SetData(renderedObjects);
+        
+        material.SetBuffer(Shader.PropertyToID("Objects"), renderedObjectBuffer);
+        material.SetInt(Shader.PropertyToID("NumObjects"), renderedObjects.Count); 
         
     }
 
     private void DisposeBuffers()
     {
-        spheresBuffer.Dispose();
+        renderedObjectBuffer.Dispose();
+        /*spheresBuffer.Dispose();
         cubesBuffer.Dispose();
-        boxFramesBuffer.Dispose();
+        boxFramesBuffer.Dispose();*/
+        shaderCamBuffer.Dispose();
     }
 }

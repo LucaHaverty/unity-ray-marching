@@ -5,15 +5,16 @@ using UnityEngine.UIElements;
 
 namespace Objects
 {
-    public class RenderedCube : MonoBehaviour
+    public class RenderedCube : RenderedObject
     {
-        public Cube GetObjectData()
+        public override RenderedObjectData GetObjectData()
         {
-            return new Cube(transform.position, transform.localScale, transform.rotation);
+            return new RenderedObjectData(1, transform.position, transform.localScale, transform.rotation, 0, 0, 0);
+
         }
     }
 
-    public struct Cube
+    /*public struct Cube
     {
         public Vector3 position;
         public Vector3 scale;
@@ -25,5 +26,5 @@ namespace Objects
             this.scale = scale;
             this.rotation = new Vector4(-rotation.x, -rotation.y, -rotation.z, rotation.w);
         }
-    }
+    }*/
 }

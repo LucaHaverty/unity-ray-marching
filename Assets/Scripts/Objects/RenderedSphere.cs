@@ -4,15 +4,15 @@ using UnityEngine;
 
 namespace Objects
 {
-    public class RenderedSphere : MonoBehaviour
+    public class RenderedSphere : RenderedObject
     {
-        public Sphere GetObjectData()
+        public override RenderedObjectData GetObjectData()
         {
-            return new Sphere(transform.position, transform.localScale.x / 2f);
+            return new RenderedObjectData(0, transform.position, new Vector3(), new Quaternion(), transform.localScale.x/2, 0, 0);
         }
     }
 
-    public struct Sphere
+    /*public struct Sphere
     {
         public Vector3 position;
         public float radius;
@@ -22,5 +22,5 @@ namespace Objects
             this.position = position;
             this.radius = radius;
         }
-    }
+    }*/
 }
