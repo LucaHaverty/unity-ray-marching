@@ -44,54 +44,11 @@ Shader "Hidden/RayMarching"
             float _MinDistance;
             float _MaxDistance;
             float _MaxSteps;
-            
-            /*StructuredBuffer<Sphere> Spheres;
-            float NumSpheres;
-            
-            StructuredBuffer<Cube> Cubes;
-            float NumCubes;
-           
-            StructuredBuffer<BoxFrame> BoxFrames;
-            float NumBoxFrames;*/
 
-            StructuredBuffer<RenderedObjectData> Objects;
-            int NumObjects;
+            StructuredBuffer<PrimitiveData> Primitives;
+            int ObjectCount;
 
             StructuredBuffer<Camera> Cam;
-            
-            float SceneSDF(float3 pointPosition)
-            {
-                //pointPos = float3(abs(pointPos.x % 1), abs(pointPos.y % 1), abs(pointPos.z % 1)); // INFINITE REPETITIONS
-                
-                float closeDist = 1*pow(10, 20);
-
-                /*for (int i = 0; i < NumSpheres; i++)
-                {
-                    float dist = SphereSDF(pointPos, Spheres[i]);
-                    closeDist = opSubtraction(closeDist, dist );
-                }
-                for (int i = 0; i < NumCubes; i++)
-                {
-                    float dist = CubeSDF(pointPos, Cubes[i]);
-                    closeDist = opSubtraction(closeDist, dist);
-                }
-                for (int i = 0; i < NumBoxFrames; i++)
-                {
-                    float dist = BoxFrameSDF(pointPos, BoxFrames[i]);
-                    closeDist = opSmoothSubtraction(closeDist, dist, 0.2);
-                }*/
-                for (int i = 0; i < NumObjects; i++)
-                {
-                    float dist = CalculateSDF(Objects[i], pointPosition);
-                    closeDist = opUnion(closeDist, dist );
-                }
-                return closeDist;
-                
-                //return SmoothMin(SphereSDF(pointPos, Spheres[0]), CubeSDF(pointPos, Cubes[0]));
-                //return opSmoothIntersection(SphereSDF(pointPos, Spheres[0]), CubeSDF(pointPos, Cubes[0]), .2);
-                //pointPos = opRotate(pointPos, float4(0, 0, 0, 0));
-                //return SDFTriangleFractal(pointPos + float3(0, 0, -3.5), Cubes[0].rotation);
-            }
 
             struct RayHitInfo
             {
@@ -106,11 +63,11 @@ Shader "Hidden/RayMarching"
                 RayHitInfo hitInfo = (RayHitInfo)0;
                 hitInfo.minDistFromObject = 1*pow(10, 20);
                 
-                float3 currentPos = origin;
+                float3 currentPosition = origin;
 
                 while(true)
                 {
-                    float stepDistance = SceneSDF(currentPos);
+                    float stepDistance = CalculateSceneSDF(Primitives, ObjectCount, currentPosition);
                     if (stepDistance < hitInfo.minDistFromObject) hitInfo.minDistFromObject = stepDistance;
                     
                     if (stepDistance < _MinDistance)
@@ -120,26 +77,26 @@ Shader "Hidden/RayMarching"
                         // Calculate Normal
                         const float STEP = 0.001;
                         float3 v1 = float3(
-                            SceneSDF(currentPos + float3(STEP, 0, 0)),
-                            SceneSDF(currentPos + float3(0, STEP, 0)),
-                            SceneSDF(currentPos + float3(0, 0, STEP))
+                            CalculateSceneSDF(Primitives, ObjectCount, currentPosition + float3(STEP, 0, 0)),
+                            CalculateSceneSDF(Primitives, ObjectCount, currentPosition + float3(0, STEP, 0)),
+                            CalculateSceneSDF(Primitives, ObjectCount, currentPosition + float3(0, 0, STEP))
                         );
                         float3 v2 = float3(
-                            SceneSDF(currentPos - float3(STEP, 0, 0)),
-                            SceneSDF(currentPos - float3(0, STEP, 0)),
-                            SceneSDF(currentPos - float3(0, 0, STEP))
+                            CalculateSceneSDF(Primitives, ObjectCount, currentPosition - float3(STEP, 0, 0)),
+                            CalculateSceneSDF(Primitives, ObjectCount, currentPosition - float3(0, STEP, 0)),
+                            CalculateSceneSDF(Primitives, ObjectCount, currentPosition - float3(0, 0, STEP))
                         );
                         hitInfo.normal = normalize(v1 - v2);
                         break;
                     }
                     
-                    if (distance(origin, currentPos) > _MaxDistance)
+                    if (distance(origin, currentPosition) > _MaxDistance)
                     {
                         break;
                     }
                     
                     hitInfo.steps++;
-                    currentPos += gain * stepDistance;
+                    currentPosition += gain * stepDistance;
 
                     if (hitInfo.steps > _MaxSteps)
                     {

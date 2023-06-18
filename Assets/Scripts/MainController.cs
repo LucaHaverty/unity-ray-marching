@@ -86,15 +86,15 @@ public class MainController : MonoBehaviour
 
         material.SetBuffer(Shader.PropertyToID("Cam"), shaderCamBuffer);
 
-        List<RenderedObjectData> renderedObjects = new List<RenderedObjectData>();
-        foreach(var renderedObject in FindObjectsOfType<RenderedObject>())
-            renderedObjects.Add(renderedObject.GetObjectData());
-        renderedObjectBuffer = new ComputeBuffer(Mathf.Max(1, renderedObjects.Count), sizeof(int) + sizeof(float) * 13);
+        List<PrimitiveData> renderedObjects = new List<PrimitiveData>();
+        foreach(var renderedObject in FindObjectsOfType<RenderedPrimiative>())
+            renderedObjects.Add(renderedObject.GetPrimitiveData());
+        renderedObjectBuffer = new ComputeBuffer(Mathf.Max(1, renderedObjects.Count), PrimitiveData.GetSize());
         
         renderedObjectBuffer.SetData(renderedObjects);
         
-        material.SetBuffer(Shader.PropertyToID("Objects"), renderedObjectBuffer);
-        material.SetInt(Shader.PropertyToID("NumObjects"), renderedObjects.Count); 
+        material.SetBuffer(Shader.PropertyToID("Primitives"), renderedObjectBuffer);
+        material.SetInt(Shader.PropertyToID("ObjectCount"), renderedObjects.Count); 
         
     }
 
