@@ -8,8 +8,10 @@ struct Camera
 struct PrimitiveData
 {
     int primatveType;
+    
     int combinationType;
-
+    float smoothAmount;
+    
     float3 position;
     float3 scale;
     float4 rotation;
@@ -40,23 +42,43 @@ float3 opRotate(float3 p, float4 r) {
     return result;
 }
 
-float opUnion( float d1, float d2 ) { return min(d1,d2); }
-            
-float opSubtraction( float a, float b ) { return max(-a,b); }
+float opUnion( float a, float b ) { return min(a, b); }
 
 float opIntersection( float a, float b ) { return max(a,b); }
+
+float opSubtraction( float a, float b ) { return max(-a,b); }
 
 float opSmoothUnion( float d1, float d2, float k ) {
     float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
     return lerp( d2, d1, h ) - k*h*(1.0-h); }
 
+float opSmoothIntersection( float d1, float d2, float k ) {
+    float h = clamp( 0.5 - 0.5*(d2-d1)/k, 0.0, 1.0 );
+    return lerp( d2, d1, h ) + k*h*(1.0-h); }
+
 float opSmoothSubtraction( float d1, float d2, float k ) {
     float h = clamp( 0.5 - 0.5*(d2+d1)/k, 0.0, 1.0 );
     return lerp( d2, -d1, h ) + k*h*(1.0-h); }
 
-float opSmoothIntersection( float d1, float d2, float k ) {
-    float h = clamp( 0.5 - 0.5*(d2-d1)/k, 0.0, 1.0 );
-    return lerp( d2, d1, h ) + k*h*(1.0-h); }
+float combineDistances(float a, float b, PrimitiveData primitive)
+{
+    switch(primitive.combinationType)
+    {
+    case 0:
+        return opUnion(a, b);
+    case 1:
+        return opIntersection(a, b);
+    case 2:
+        return opSubtraction(a, b);
+    case 3:
+        return opSmoothUnion(a, b, primitive.smoothAmount);
+    case 4:
+        return opSmoothIntersection(a, b, primitive.smoothAmount);
+    case 5:
+        return opSmoothSubtraction(a, b, primitive.smoothAmount);
+    default: return opUnion(a, b);
+    }
+}
 
 float CalculatePrimitiveSDF(PrimitiveData primatve, float3 pointPosition)
 {
@@ -70,7 +92,6 @@ float CalculatePrimitiveSDF(PrimitiveData primatve, float3 pointPosition)
     {
         case 0: // Sphere (p1 = radius)
             return (length(p)) - primatve.p1;
-            break;
         case 1: // Cube
             float3 q = abs(p) - primatve.scale/2.0;
             return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
@@ -88,14 +109,14 @@ float CalculatePrimitiveSDF(PrimitiveData primatve, float3 pointPosition)
 
 float CalculateSceneSDF(StructuredBuffer<PrimitiveData> primitives, int objectCount, float3 pointPosition)
 {
-    //pointPos = float3(abs(pointPos.x % 1), abs(pointPos.y % 1), abs(pointPos.z % 1)); // INFINITE REPETITIONS
-                
+    //pointPosition = float3(abs(pointPosition.x % 1), abs(pointPosition.y % 1), abs(pointPosition.z % 1)); // INFINITE REPETITIONS
+    float3 samplePos = pointPosition*10;
     float closeDist = 1*pow(10, 20);
 
     for (int i = 0; i < objectCount; i++)
     {
         float dist = CalculatePrimitiveSDF(primitives[i], pointPosition);
-        closeDist = opUnion(closeDist, dist );
+        closeDist = combineDistances(closeDist, dist, primitives[i]);
     }
     return closeDist;
 }

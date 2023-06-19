@@ -8,7 +8,7 @@ namespace Objects
     {
         public override PrimitiveData GetPrimitiveData()
         {
-            return new PrimitiveData(PrimitiveType.Sphere, combinationType, 
+            return new PrimitiveData(PrimitiveType.Sphere, combinationType, smoothAmount,
                     transform.position, new Vector3(), new Quaternion(), transform.localScale.x/2, 0, 0);
         }
     }

@@ -10,8 +10,8 @@ namespace Objects
         [SerializeField] private float edgeThickness;
         public override PrimitiveData GetPrimitiveData()
         {
-            return new PrimitiveData(PrimitiveType.BoxFrame, combinationType, transform.position, 
-                    transform.localScale, transform.rotation, edgeThickness, 0, 0);
+            return new PrimitiveData(PrimitiveType.BoxFrame, combinationType, smoothAmount, 
+                    transform.position, transform.localScale, transform.rotation, edgeThickness, 0, 0);
         }
     }
 }

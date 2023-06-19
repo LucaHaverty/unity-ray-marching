@@ -48,6 +48,8 @@ Shader "Hidden/RayMarching"
             StructuredBuffer<PrimitiveData> Primitives;
             int ObjectCount;
 
+            float Time;
+
             StructuredBuffer<Camera> Cam;
 
             struct RayHitInfo

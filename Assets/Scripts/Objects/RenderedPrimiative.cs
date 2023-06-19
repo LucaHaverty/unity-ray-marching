@@ -5,13 +5,17 @@ namespace Objects
     public abstract class RenderedPrimiative : MonoBehaviour
     {
         [SerializeField] protected CombinationType combinationType;
+        [SerializeField] protected float smoothAmount;
+        
         public abstract PrimitiveData GetPrimitiveData();
     }
     
     public struct PrimitiveData
     {
         private PrimitiveType primitiveType;
+        
         private CombinationType combinationType;
+        private float smoothAmount;
 
         private Vector3 position;
         private Vector3 scale;
@@ -22,11 +26,13 @@ namespace Objects
         private float p2;
         private float p3;
 
-        public PrimitiveData(PrimitiveType primitiveType, CombinationType combinationType,
+        public PrimitiveData(PrimitiveType primitiveType, CombinationType combinationType, float smoothAmount,
                 Vector3 position, Vector3 scale, Quaternion rotation, float p1, float p2, float p3)
         {
             this.primitiveType = primitiveType;
+            
             this.combinationType = combinationType;
+            this.smoothAmount = smoothAmount;
             
             this.position = position;
             this.scale = scale;
@@ -39,7 +45,7 @@ namespace Objects
 
         public static int GetSize()
         {
-            return (sizeof(int) * 2) + (sizeof(float) * 13);
+            return (sizeof(int) * 2) + (sizeof(float) * 14);
         }
     }
     
