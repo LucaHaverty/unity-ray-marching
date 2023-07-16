@@ -7,7 +7,7 @@ struct Camera
 
 struct PrimitiveData
 {
-    int primatveType;
+    int primitveType;
     
     int combinationType;
     float smoothAmount;
@@ -15,6 +15,8 @@ struct PrimitiveData
     float3 position;
     float3 scale;
     float4 rotation;
+
+    float4 color;
 
     // Properties: use varies depending on objectType
     float p1;
@@ -80,30 +82,41 @@ float combineDistances(float a, float b, PrimitiveData primitive)
     }
 }
 
-float CalculatePrimitiveSDF(PrimitiveData primatve, float3 pointPosition)
+float CalculatePrimitiveSDF(PrimitiveData primitive, float3 pointPosition)
 {
     // Distance to center
-    float3 p = primatve.position - pointPosition;
+    float3 p = primitive.position - pointPosition;
 
     // Apply X rotation
-    p = opRotate(p, primatve.rotation);
+    p = opRotate(p, primitive.rotation);
 
-    switch(primatve.primatveType)
+    switch(primitive.primitveType)
     {
-        case 0: // Sphere (p1 = radius)
-            return (length(p)) - primatve.p1;
-        case 1: // Cube
-            float3 q = abs(p) - primatve.scale/2.0;
+    case 0: // Sphere (p1 = radius)
+        {
+            return (length(p)) - primitive.p1;
+        }
+    case 1: // Cube
+        {
+            float3 q = abs(p) - primitive.scale/2.0;
             return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
-        case 2: // Box Frame (p1 = edgeThickness)
-            p = abs(p)-primatve.scale/2.0;
-            float3 q2 = abs(p+primatve.p1)-primatve.p1;
+        }
+    case 2: // Box Frame (p1 = edgeThickness)
+        {
+            p = abs(p)-primitive.scale/2.0;
+            float3 q2 = abs(p+primitive.p1)-primitive.p1;
             return min(min(
                   length(max(float3(p.x,q2.y,q2.z),0.0))+min(max(p.x,max(q2.y,q2.z)),0.0),
                   length(max(float3(q2.x,p.y,q2.z),0.0))+min(max(q2.x,max(p.y,q2.z)),0.0)),
                   length(max(float3(q2.x,q2.y,p.z),0.0))+min(max(q2.x,max(q2.y,p.z)),0.0));
-        default:
-            return 0;
+        }
+    case 3: // Torus (scale.x = radius, scale.y = thickness)
+        {
+            float2 q = float2(length(p.xz)-primitive.scale.x,p.y);
+            return length(q)-primitive.scale.y;
+        }
+    default:
+        return 0;
     }
 }
 

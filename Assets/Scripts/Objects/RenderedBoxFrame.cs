@@ -1,17 +1,16 @@
-using System.Collections.Generic;
-using TreeEditor;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.Serialization;
 
 namespace Objects
 {
     public class RenderedBoxFrame : RenderedPrimiative
     {
-        [SerializeField] private float edgeThickness;
-        public override PrimitiveData GetPrimitiveData()
-        {
-            return new PrimitiveData(PrimitiveType.BoxFrame, combinationType, smoothAmount, 
-                    transform.position, transform.localScale, transform.rotation, edgeThickness, 0, 0);
+        [SerializeField] private float _edgeThickness = 0.1f;
+        public override PrimitiveData GetPrimitiveData() {
+            var trf = transform;
+            
+            return new PrimitiveData(PrimitiveType.BoxFrame, _combinationType, _smoothAmount, 
+                trf.position, trf.localScale, trf.rotation, _color, p1: _edgeThickness);
         }
     }
 }

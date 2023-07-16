@@ -1,58 +1,53 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using Objects;
-using Unity.VisualScripting;
 using UnityEngine;
-using Object = System.Object;
 
 [ExecuteAlways]
-public class MainController : MonoBehaviour
-{
-    [SerializeField] private Material material;
-    [SerializeField] private Transform sceneStructure;
- 
-    private ComputeBuffer renderedObjectBuffer;
-    private ComputeBuffer shaderCamBuffer;
+public class MainController : MonoBehaviour {
+    [SerializeField] private Material _material;
+    [SerializeField] private Transform _sceneStructure;
 
-    private void OnRenderImage(RenderTexture src, RenderTexture dest)
-    {
+    private ComputeBuffer _renderedObjectBuffer;
+    private ComputeBuffer _shaderCamBuffer;
+
+    private UseAsCam _cam;
+
+    private void OnRenderImage(RenderTexture src, RenderTexture dest) {
         SendObjectData();
-        Graphics.Blit(null, dest, material);
+
+        Graphics.Blit(null, dest, _material);
         DisposeBuffers();
     }
 
-    private void SendObjectData()
-    {
-        List<ShaderCam> shaderCam = new List<ShaderCam>();
-        foreach(var cam in FindObjectsOfType<UseAsCam>())
-            shaderCam.Add(cam.GetObjectData());
-        shaderCamBuffer = new ComputeBuffer(Math.Max(1, shaderCam.Count), sizeof(float) * 9);
+    private void SendObjectData() {
+        if (_shaderCamBuffer == null)
+            _shaderCamBuffer = new ComputeBuffer(1, sizeof(float) * 9);
         
-        shaderCamBuffer.SetData(shaderCam);
+        if (_cam == null)
+            _cam = FindObjectOfType<UseAsCam>();
 
-        material.SetBuffer(Shader.PropertyToID("Cam"), shaderCamBuffer);
+        _shaderCamBuffer.SetData(new[] {_cam.GetObjectData()});
+        
+        _material.SetBuffer(Shader.PropertyToID("Cam"), _shaderCamBuffer);
 
         List<PrimitiveData> renderedObjects = new List<PrimitiveData>();
-        foreach (Transform renderedObject in sceneStructure)
-        {
+        foreach (Transform renderedObject in _sceneStructure) {
             if (renderedObject.gameObject.activeSelf)
                 renderedObjects.Add(renderedObject.GetComponent<RenderedPrimiative>().GetPrimitiveData());
         }
 
-        renderedObjectBuffer = new ComputeBuffer(Mathf.Max(1, renderedObjects.Count), PrimitiveData.GetSize());
-        
-        renderedObjectBuffer.SetData(renderedObjects);
-        
-        material.SetBuffer(Shader.PropertyToID("Primitives"), renderedObjectBuffer);
-        material.SetInt(Shader.PropertyToID("ObjectCount"), renderedObjects.Count); 
-        material.SetFloat(Shader.PropertyToID("Time"), Time.time);
-        
+        _renderedObjectBuffer = new ComputeBuffer(Mathf.Max(1, renderedObjects.Count), PrimitiveData.GetSize());
+
+        _renderedObjectBuffer.SetData(renderedObjects);
+
+        _material.SetInt(Shader.PropertyToID("ObjectCount"), renderedObjects.Count);
+        _material.SetBuffer(Shader.PropertyToID("Primitives"), _renderedObjectBuffer);
+        _material.SetFloat(Shader.PropertyToID("Time"), Time.time);
     }
 
-    private void DisposeBuffers()
-    {
-        renderedObjectBuffer.Dispose();
-        shaderCamBuffer.Dispose();
+    private void DisposeBuffers() {
+        _renderedObjectBuffer.Dispose();
     }
 }

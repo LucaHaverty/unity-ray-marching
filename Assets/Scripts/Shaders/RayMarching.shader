@@ -112,8 +112,6 @@ Shader "Hidden/RayMarching"
             {
                 Camera cam = Cam[0];
                 float3 origin = float3(cam.position.x, cam.position.y, cam.position.z);
-                //float2 rayAngle = float2(-(i.uv.x * 2 - 1) * _RayAngleX + 90, (i.uv.y * 2 - 1) * _RayAngleY);
-                //rayAngle = normalize(rayAngle);
 
                 float3 gain = normalize(float3((i.uv.x*2 - 1) * tan(cam.viewAngle.x*0.0174533), (i.uv.y*2 - 1) * tan(cam.viewAngle.y*0.0174533), 1));
                 gain = opRotate(gain, cam.rotation);
@@ -124,10 +122,9 @@ Shader "Hidden/RayMarching"
                 if (hitInfo.hitTarget)
                 {
                     // Simple normal shading
-                    float xnormal = hitInfo.normal.x+0.3*2;
+                    const float xnormal = hitInfo.normal.x+0.3*2;
                     float ynormal = hitInfo.normal.y+0.3*2;
                     float shading = pow(xnormal*ynormal, .8);
-                    //col = float4((1-abs(hitInfo.normal.x))*shading, (1-abs(hitInfo.normal.y))*shading, shading, 1);
 
                     col = float4(shading, shading, shading, 1);
                 }

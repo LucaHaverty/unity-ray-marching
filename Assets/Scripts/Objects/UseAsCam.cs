@@ -1,16 +1,14 @@
-using System.Collections.Generic;
-using TreeEditor;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace Objects
 {
     public class UseAsCam : MonoBehaviour
     {
         public Vector2 viewAngleDeg;
-        public ShaderCam GetObjectData()
-        {
-            return new ShaderCam(transform.position, transform.rotation, viewAngleDeg);
+        public ShaderCam GetObjectData() {
+            var trf = transform;
+            
+            return new ShaderCam(trf.position, trf.rotation, viewAngleDeg);
         }
     }
 

@@ -1,51 +1,55 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Objects
 {
-    public abstract class RenderedPrimiative : MonoBehaviour
-    {
-        [SerializeField] protected CombinationType combinationType;
-        [SerializeField] protected float smoothAmount;
+    public abstract class RenderedPrimiative : MonoBehaviour {
+        [SerializeField] protected Color _color;
+        [SerializeField] protected CombinationType _combinationType;
+        [SerializeField] protected float _smoothAmount;
         
         public abstract PrimitiveData GetPrimitiveData();
     }
     
-    public struct PrimitiveData
-    {
-        private PrimitiveType primitiveType;
+    public struct PrimitiveData {
+        private PrimitiveType _primitiveType;
         
-        private CombinationType combinationType;
-        private float smoothAmount;
+        private CombinationType _combinationType;
+        private float _smoothAmount;
 
-        private Vector3 position;
-        private Vector3 scale;
-        private Vector4 rotation;
+        private Vector3 _position;
+        private Vector3 _scale;
+        private Vector4 _rotation;
+
+        private Color _color;
 
         // Properties: use varies depending on objectType
-        private float p1;
-        private float p2;
-        private float p3;
+        private float _p1;
+        private float _p2;
+        private float _p3;
 
         public PrimitiveData(PrimitiveType primitiveType, CombinationType combinationType, float smoothAmount,
-                Vector3 position, Vector3 scale, Quaternion rotation, float p1, float p2, float p3)
+                Vector3 position, Vector3 scale, Quaternion rotation, Color color, float p1 = 0, float p2 = 0, float p3 = 0)
         {
-            this.primitiveType = primitiveType;
+            _primitiveType = primitiveType;
             
-            this.combinationType = combinationType;
-            this.smoothAmount = smoothAmount;
+            _combinationType = combinationType;
+            _smoothAmount = smoothAmount;
             
-            this.position = position;
-            this.scale = scale;
-            this.rotation = new Vector4(-rotation.x, -rotation.y, -rotation.z, rotation.w);
+            _position = position;
+            _scale = scale;
+            _rotation = new Vector4(-rotation.x, -rotation.y, -rotation.z, rotation.w);
+
+            _color = color;
             
-            this.p1 = p1;
-            this.p2 = p2;
-            this.p3 = p3;
+            _p1 = p1;
+            _p2 = p2;
+            _p3 = p3;
         }
 
         public static int GetSize()
         {
-            return (sizeof(int) * 2) + (sizeof(float) * 14);
+            return System.Runtime.InteropServices.Marshal.SizeOf(typeof(PrimitiveData));
         }
     }
     
@@ -63,6 +67,7 @@ namespace Objects
     {
         Sphere,
         Cube,
-        BoxFrame
+        BoxFrame,
+        Torus
     }
 }
