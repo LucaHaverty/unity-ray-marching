@@ -257,8 +257,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fca139f3408bdb44941c6236e9d18f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  combinationType: 0
-  smoothAmount: 0
+  _color: {r: 0, g: 0, b: 0, a: 0}
+  _combinationType: 0
+  _smoothAmount: 0
 --- !u!65 &115958466
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -833,6 +834,7 @@ Transform:
   - {fileID: 1608270181}
   - {fileID: 1868891915}
   - {fileID: 115958469}
+  - {fileID: 5865974715064849922}
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1010,8 +1012,16 @@ PrefabInstance:
       value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 2713482365232516433, guid: 07b7f1d4e5da810439ba09f2d80ffced, type: 3}
+      propertyPath: _smoothAmount
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2713482365232516433, guid: 07b7f1d4e5da810439ba09f2d80ffced, type: 3}
       propertyPath: combinationType
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2713482365232516433, guid: 07b7f1d4e5da810439ba09f2d80ffced, type: 3}
+      propertyPath: _combinationType
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2713482365232516434, guid: 07b7f1d4e5da810439ba09f2d80ffced, type: 3}
       propertyPath: m_Name
@@ -1039,15 +1049,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2713482365232516445, guid: 07b7f1d4e5da810439ba09f2d80ffced, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.35
+      value: 0.29
       objectReference: {fileID: 0}
     - target: {fileID: 2713482365232516445, guid: 07b7f1d4e5da810439ba09f2d80ffced, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -1.21
       objectReference: {fileID: 0}
     - target: {fileID: 2713482365232516445, guid: 07b7f1d4e5da810439ba09f2d80ffced, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 2
+      value: 2.84
       objectReference: {fileID: 0}
     - target: {fileID: 2713482365232516445, guid: 07b7f1d4e5da810439ba09f2d80ffced, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1082,6 +1092,105 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 07b7f1d4e5da810439ba09f2d80ffced, type: 3}
+--- !u!23 &5865974715064848892
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5865974715064848895}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &5865974715064848895
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5865974715064849922}
+  - component: {fileID: 5865974715064849923}
+  - component: {fileID: 5865974715064848892}
+  - component: {fileID: 5865974715064849924}
+  m_Layer: 0
+  m_Name: Octahedron
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5865974715064849922
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5865974715064848895}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1.8541391, y: 0.65529, z: 1.1666867}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1046871413}
+  m_RootOrder: -1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &5865974715064849923
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5865974715064848895}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &5865974715064849924
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5865974715064848895}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9c94d77f0057f7499a51ef735af72c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _color: {r: 0, g: 0, b: 0, a: 0}
+  _combinationType: 0
+  _smoothAmount: 0
 --- !u!1001 &7355414894581758235
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1140,7 +1249,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7355414894869265937, guid: ed97a4f607fd1784790dab759cb3e4e1, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7355414894869265941, guid: ed97a4f607fd1784790dab759cb3e4e1, type: 3}
       propertyPath: smoothAmount
@@ -1225,7 +1334,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7856431534449259890, guid: 92d0d2bb91d3d1e4fb42b1ef783eb544, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7856431534449259891, guid: 92d0d2bb91d3d1e4fb42b1ef783eb544, type: 3}
       propertyPath: smoothAmount

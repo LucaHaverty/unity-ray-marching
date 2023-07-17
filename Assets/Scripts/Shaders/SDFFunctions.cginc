@@ -115,8 +115,23 @@ float CalculatePrimitiveSDF(PrimitiveData primitive, float3 pointPosition)
             float2 q = float2(length(p.xz)-primitive.scale.x,p.y);
             return length(q)-primitive.scale.y;
         }
-    default:
-        return 0;
+    case 4: // Octahedron (p1 = size)
+        {
+            p = abs(p);
+            float size = primitive.p1;
+            
+            float m = p.x+p.y+p.z-size;
+            float3 q;
+            if( 3.0*p.x < m ) q = p.xyz;
+            else if( 3.0*p.y < m ) { q = p.yzx; }
+            else if( 3.0*p.z < m ) { q = p.zxy; }
+            else return m*0.57735027;
+    
+            float k = clamp(0.5*(q.z-q.y+size),0.0,size); 
+            return length(float3(q.x,q.y-size+k,q.z-k));
+        }
+    default: // Default to sphere
+        return (length(p)) - primitive.p1;
     }
 }
 

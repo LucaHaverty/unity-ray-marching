@@ -68,6 +68,7 @@ namespace Objects
         Sphere,
         Cube,
         BoxFrame,
-        Torus
+        Torus,
+        Octahedron
     }
 }
