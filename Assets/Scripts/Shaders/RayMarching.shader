@@ -6,6 +6,14 @@ Shader "Hidden/RayMarching"
         _MinDistance ("Min Distance", float) = 0
         _MaxDistance ("Max Distance", float) = 0
         _MaxSteps ("Max Steps", float) = 0
+        
+        _GridWidth ("Grid Width", Range(0.1, 1)) = 0
+        _GridColor("Grid Color", Color) = (0,0,0,0)
+        
+        _OutlineWidth("Outline Width", Range(0, 1)) = 0
+        _OutlineColor("Outline Color", Color) = (0,0,0,0)
+        
+        _RenderSkybox ("Render Skybox", Range(0, 1)) = 0
     }
     SubShader
     {
@@ -39,11 +47,19 @@ Shader "Hidden/RayMarching"
                 o.uv = v.uv;
                 return o;
             }
+
+            const float4 UnknownColor = float4(1,0,0,1);
             
             sampler2D _MainTex;
             float _MinDistance;
             float _MaxDistance;
             float _MaxSteps;
+            float _GridWidth;
+            bool _RenderSkybox;
+            float4 _GridColor;
+
+            float _OutlineWidth;
+            float4 _OutlineColor;
 
             StructuredBuffer<PrimitiveData> Primitives;
             int ObjectCount;
@@ -55,9 +71,11 @@ Shader "Hidden/RayMarching"
             struct RayHitInfo
             {
                 bool hitTarget;
+                float3 position;
                 float3 normal;
                 int steps;
                 float minDistFromObject;
+                bool test;
             };
 
             RayHitInfo CastRay(float3 origin, float3 gain)
@@ -69,7 +87,7 @@ Shader "Hidden/RayMarching"
 
                 while(true)
                 {
-                    float stepDistance = CalculateSceneSDF(Primitives, ObjectCount, currentPosition);
+                    float stepDistance = CalculateSceneSDF(currentPosition);
                     if (stepDistance < hitInfo.minDistFromObject) hitInfo.minDistFromObject = stepDistance;
                     
                     if (stepDistance < _MinDistance)
@@ -79,21 +97,24 @@ Shader "Hidden/RayMarching"
                         // Calculate Normal
                         const float STEP = 0.001;
                         float3 v1 = float3(
-                            CalculateSceneSDF(Primitives, ObjectCount, currentPosition + float3(STEP, 0, 0)),
-                            CalculateSceneSDF(Primitives, ObjectCount, currentPosition + float3(0, STEP, 0)),
-                            CalculateSceneSDF(Primitives, ObjectCount, currentPosition + float3(0, 0, STEP))
+                            CalculateSceneSDF(currentPosition + float3(STEP, 0, 0)),
+                            CalculateSceneSDF(currentPosition + float3(0, STEP, 0)),
+                            CalculateSceneSDF(currentPosition + float3(0, 0, STEP))
                         );
                         float3 v2 = float3(
-                            CalculateSceneSDF(Primitives, ObjectCount, currentPosition - float3(STEP, 0, 0)),
-                            CalculateSceneSDF(Primitives, ObjectCount, currentPosition - float3(0, STEP, 0)),
-                            CalculateSceneSDF(Primitives, ObjectCount, currentPosition - float3(0, 0, STEP))
+                            CalculateSceneSDF(currentPosition - float3(STEP, 0, 0)),
+                            CalculateSceneSDF(currentPosition - float3(0, STEP, 0)),
+                            CalculateSceneSDF(currentPosition - float3(0, 0, STEP))
                         );
+
+                        hitInfo.position = currentPosition;
                         hitInfo.normal = normalize(v1 - v2);
                         break;
                     }
                     
                     if (distance(origin, currentPosition) > _MaxDistance)
                     {
+                        hitInfo.test = true;
                         break;
                     }
                     
@@ -110,6 +131,8 @@ Shader "Hidden/RayMarching"
             
             float4 frag (v2f i) : SV_Target
             {
+                const float4 unknownColor = float4(.9,0.1,1,1);
+                
                 Camera cam = Cam[0];
                 float3 origin = float3(cam.position.x, cam.position.y, cam.position.z);
 
@@ -122,21 +145,36 @@ Shader "Hidden/RayMarching"
                 if (hitInfo.hitTarget)
                 {
                     // Simple normal shading
-                    const float xnormal = hitInfo.normal.x+0.3*2;
+                    float xnormal = hitInfo.normal.x+0.3*2;
                     float ynormal = hitInfo.normal.y+0.3*2;
-                    float shading = pow(xnormal*ynormal, .8);
-
+                    
+                    float shading = clamp(pow(max(xnormal*ynormal,0), .8),0,1);
+                    
                     col = float4(shading, shading, shading, 1);
+
+                    // Grid
+                    if (_GridColor.a > 0)
+                    {
+                        if (abs(hitInfo.position.x) % 1 < _GridWidth
+                            || abs(hitInfo.position.y) % 1 < _GridWidth
+                            || abs(hitInfo.position.z) % 1 < _GridWidth)
+                            col = lerp(col, _GridColor, _GridColor.a);        
+                    }
                 }
-                else // Skybox
+                else if (_RenderSkybox) // Skybox
                 {
                     float darkness = ((float)1 / i.uv.y);
-                    darkness = min(darkness, 3.5);
+                    darkness = min(darkness, 3.5); 
                     col = float4(0.3*darkness-0.2, 0.45*darkness-0.2, 0.8*darkness-0.2, 0);
                 }
-
+                else col = unknownColor;
+                
                 // Outline Shading
-                if (!hitInfo.hitTarget && hitInfo.minDistFromObject < 0.03) col = float4(.5, 0, 1, 1);
+                if (_OutlineWidth > 0)
+                {
+                    if (!hitInfo.hitTarget && hitInfo.minDistFromObject < _OutlineWidth) col =
+                        lerp(col, _OutlineColor, _OutlineColor.a);
+                }
                 return col;
             }
             ENDCG

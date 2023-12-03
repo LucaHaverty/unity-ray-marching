@@ -82,6 +82,17 @@ float combineDistances(float a, float b, PrimitiveData primitive)
     }
 }
 
+float SphereSDF(float3 p, float radius)
+{
+    return length(p) - radius;
+}
+
+float BoxSDF(float3 p, float3 scale)
+{
+    float3 q = abs(p) - scale/2.0;
+    return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
+}
+
 float CalculatePrimitiveSDF(PrimitiveData primitive, float3 pointPosition)
 {
     // Distance to center
@@ -135,18 +146,100 @@ float CalculatePrimitiveSDF(PrimitiveData primitive, float3 pointPosition)
     }
 }
 
-float CalculateSceneSDF(StructuredBuffer<PrimitiveData> primitives, int objectCount, float3 pointPosition)
+/*// Define your 3D function. For example, a simple paraboloid.
+float3 Function(float2 xz)
 {
-    //pointPosition = float3(abs(pointPosition.x % 1), abs(pointPosition.y % 1), abs(pointPosition.z % 1)); // INFINITE REPETITIONS
-    float3 samplePos = pointPosition*10;
-    float closeDist = 1*pow(10, 20);
+    return float3(xz.x, sin(xz.y), xz.y);
+}
 
-    for (int i = 0; i < objectCount; i++)
+// Function to calculate the distance between two points.
+float Distance(float3 point1, float3 point2)
+{
+    return length(point1 - point2);
+}
+
+float3 targetPoint;
+float DistToFunc(float2 xz, float3 target)
+{
+    return Distance(targetPoint, Function(xz));
+}
+
+float2 CalcGradient(float2 xz, float3 target)
+{
+    const float step = 0.001;
+
+    float mx = (DistToFunc(xz + float2(step, 0), target) - DistToFunc(xz, target)) / step;
+    float mz = (DistToFunc(xz + float2(0, step), target) - DistToFunc(xz, target)) / step;
+
+    return float2(mx, mz);
+}
+
+// Function to find the closest point on the function's surface to the target point.
+float FindClosestPoint(float3 p)
+{
+    const float iterations = 10;
+    const float descentStep = 0.0001;
+    
+    targetPoint = p;
+    
+    // Define initial values for the closest point and minimum distance.
+    float2 closestPoint = float2(p.x, p.z);
+
+    float initialDist = DistToFunc(closestPoint, targetPoint);
+    float minDistance = initialDist;
+
+    for (int i = 0; i < iterations; i++)
     {
-        float dist = CalculatePrimitiveSDF(primitives[i], pointPosition);
-        closeDist = combineDistances(closeDist, dist, primitives[i]);
+        float2 gradient = CalcGradient(closestPoint, targetPoint);
+        closestPoint += -gradient*descentStep;
+        minDistance = DistToFunc(closestPoint, targetPoint);
     }
-    return closeDist;
+
+    return minDistance;
+    //return initialDist;
+    //return p.y + pow(p.x,1.8) + pow(p.z,1.8);
+}*/
+float Func(float2 p)
+{
+    return sin(p.x)*1.5;
+}
+
+float DistToFunc(float3 p, float2 funcEval)
+{
+    float3 delta = p-float3(funcEval.x, Func(funcEval), funcEval.y);
+    return length(delta)*sign(delta.y);
+}
+
+float FindClosestPoint(float3 p)
+{
+    //return p.y+p.z;
+    float minDist = DistToFunc(p, p.xz);
+
+    float2 currFuncEval = p.xz;
+    
+    for (int i = 0; i < 1000; i++)
+    {
+        float h = .00001;
+        float gradient = (DistToFunc(p, currFuncEval+h) - DistToFunc(p, currFuncEval)) / h;
+        /*float2 gradient = float2(
+            (distToFunc(p, currFuncEval + float2(h, 0)) - distToFunc(p, currFuncEval)) / h,
+            (distToFunc(p, currFuncEval + float2(0, h)) - distToFunc(p, currFuncEval)) / h
+        );*/
+
+        currFuncEval.x -= gradient * .005;
+
+        minDist = min(minDist, DistToFunc(p, currFuncEval));
+    }
+    return minDist;
+}
+
+float CalculateSceneSDF(float3 p)
+{
+    //return min(FindClosestPoint(p), SphereSDF(p-float3(5,5,0), 2));
+    return opSmoothUnion(BoxSDF(p, float3(1,1,1)),
+    SphereSDF(p-float3(0.5,-0.5,0), 1)
+,0.5);
+    //return SphereSDF(p - float3(5,5,0), 2);
 }
 
 /*float SDFTriangleFractal(float3 z, float4 rot)

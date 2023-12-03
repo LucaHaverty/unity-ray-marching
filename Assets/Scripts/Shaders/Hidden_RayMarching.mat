@@ -29,15 +29,23 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _GridOpacity: 0.44
+    - _GridWidth: 0.1
     - _MaxDistance: 75
     - _MaxSteps: 1000
     - _MinDistance: 0.001
+    - _OutlineOpacity: 0.45
+    - _OutlineWidth: 0.08
     - _RayAngleX: 60
     - _RayAngleY: 43.1
+    - _RenderGrid: 1
+    - _RenderSkybox: 1
     - _RotationX: 0
     - _SphereRadius: 0
     - _SphereX: 0
     - _SphereY: 0
     - _SphereZ: 0
-    m_Colors: []
+    m_Colors:
+    - _GridColor: {r: 0.4245283, g: 0.4245283, b: 0.4245283, a: 0}
+    - _OutlineColor: {r: 0.35484123, g: 0, b: 1, a: 0.5411765}
   m_BuildTextureStacks: []
